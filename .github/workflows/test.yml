@@ -23,15 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Scarb
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh -s -- -v $SCARB_VERSION
-          echo "${HOME}/.local/bin" >> $GITHUB_PATH
+      - name: Install scarb
+        run: curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh -s -- -v 2.9.2
 
-      - name: Install Starknet Foundry
-        run: |
-          curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | sh
-          echo "${HOME}/.local/share/starknet-foundry/bin" >> $GITHUB_PATH
+      - name: Install snfoundryup
+        run: curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | sh
+
+      - name: Install snforge
+        run: snfoundryup -v 0.34.0
 
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -49,21 +48,12 @@ jobs:
 
       - name: Check SNForge version
         run: snforge --version
-
+      
       - name: Build contracts
         run: scarb build
 
       - name: Run tests
         run: snforge test
-
-      - name: Run tests with coverage
-        run: snforge test --coverage
-
-      # Optional: Upload coverage report
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage/
+        working-directory: contracts
 
   
