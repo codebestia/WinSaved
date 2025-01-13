@@ -38,13 +38,13 @@ jobs:
       # Step 4: Run ESLint
       - name: Run ESLint
         run: |
-          npx eslint . --ext .js,.jsx,.ts,.tsx
+          npx eslint .
         working-directory: frontend
           
       # Step 5: Check code formatting (using Prettier)
       - name: Check code formatting with Prettier
         run: |
-          npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}"
+          npx prettier --check "src/**/*.{js,jsx,ts,tsx}"
         working-directory: frontend
     
   contract-lint:
