@@ -1,12 +1,10 @@
 import './App.css'
 
 function App() {
-
-
   return (
     <>
       <div>
-          <h1>WinSaved</h1>
+        <h1>WinSaved</h1>
       </div>
     </>
   )
