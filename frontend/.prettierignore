@@ -5,3 +5,4 @@ dist
 firestore.indexes.json
 firebase.json
 .md
+node_modules

@@ -11,27 +11,26 @@ on:
       - dev
 
 env:
-  SCARB_VERSION: 0.7.0
-  SNFORGE_VERSION: 0.12.0
-  CAIRO_VERSION: 2.3.1
+  SCARB_VERSION: 2.8.5
+  SNFORGE_VERSION: 0.35.1
+  CAIRO_VERSION: 2.8.5
 
 jobs:
   test:
-    name: Run Cairo Tests
+    name: Run Contract Tests
     runs-on: ubuntu-latest
     
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Scarb
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh -s -- -v $SCARB_VERSION
-          echo "${HOME}/.local/bin" >> $GITHUB_PATH
+      - name: Install scarb
+        run: curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh -s -- -v $SCARB_VERSION
 
-      - name: Install Starknet Foundry
-        run: |
-          curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | sh
-          echo "${HOME}/.local/share/starknet-foundry/bin" >> $GITHUB_PATH
+      - name: Install snfoundryup
+        run: curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | sh
+
+      - name: Install snforge
+        run: snfoundryup -v $SNFORGE_VERSION
 
       - name: Cache dependencies
         uses: actions/cache@v3
@@ -49,21 +48,13 @@ jobs:
 
       - name: Check SNForge version
         run: snforge --version
-
+      
       - name: Build contracts
         run: scarb build
+        working-directory: contracts
 
       - name: Run tests
         run: snforge test
-
-      - name: Run tests with coverage
-        run: snforge test --coverage
-
-      # Optional: Upload coverage report
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage/
+        working-directory: contracts
 
   
