@@ -11,9 +11,9 @@ on:
       - dev
 
 env:
-  SCARB_VERSION: 0.7.0
-  SNFORGE_VERSION: 0.12.0
-  CAIRO_VERSION: 2.3.1
+  SCARB_VERSION: 2.8.5
+  SNFORGE_VERSION: 0.35.1
+  CAIRO_VERSION: 2.8.5
 
 jobs:
   lint-and-format:
