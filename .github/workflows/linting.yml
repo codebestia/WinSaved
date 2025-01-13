@@ -33,16 +33,19 @@ jobs:
       - name: Install dependencies
         run: |
           npm install
+        working-directory: frontend
           
       # Step 4: Run ESLint
       - name: Run ESLint
         run: |
           npx eslint . --ext .js,.jsx,.ts,.tsx
+        working-directory: frontend
           
       # Step 5: Check code formatting (using Prettier)
       - name: Check code formatting with Prettier
         run: |
           npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}"
+        working-directory: frontend
     
   contract-lint:
     name: Lint Cairo Code
@@ -55,6 +58,8 @@ jobs:
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh -s -- -v $SCARB_VERSION
           echo "${HOME}/.local/bin" >> $GITHUB_PATH
+        working-directory: contracts
 
       - name: Format check
         run: scarb fmt --check
+        working-directory: contracts
