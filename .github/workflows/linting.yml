@@ -44,7 +44,7 @@ jobs:
         run: |
           npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}"
     
-    contract-lint:
+  contract-lint:
     name: Lint Cairo Code
     runs-on: ubuntu-latest
     
