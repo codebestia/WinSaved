@@ -2,17 +2,23 @@ const Footer = () => {
   const footerSections = [
     {
       title: 'COMPANY',
-      links: ['About Us', 'Partnerships', 'Games', 'Branding', 'FAQ']
+      links: ['About Us', 'Partnerships', 'Games', 'Branding', 'FAQ'],
     },
     {
       title: 'SOCIAL',
-      links: ['Facebook', 'Twitter', 'Instagram', 'TikTok', 'Our Discord']
+      links: ['Facebook', 'Twitter', 'Instagram', 'TikTok', 'Our Discord'],
     },
     {
       title: 'SUPPORTED GAMES',
-      links: ['League of Legends', 'Counter-Strike 2', 'Valorant', 'TeamFight Tactics', 'Apex Legends']
-    }
-  ];
+      links: [
+        'League of Legends',
+        'Counter-Strike 2',
+        'Valorant',
+        'TeamFight Tactics',
+        'Apex Legends',
+      ],
+    },
+  ]
 
   return (
     <footer className="bg-[#030817] py-12">
@@ -26,7 +32,9 @@ const Footer = () => {
           {/* Links Sections */}
           {footerSections.map((section, index) => (
             <div key={index} className="w-full md:w-1/4 mb-8 md:mb-0">
-              <h3 className="text-white text-sm font-medium mb-4">{section.title}</h3>
+              <h3 className="text-white text-sm font-medium mb-4">
+                {section.title}
+              </h3>
               <ul className="space-y-2">
                 {section.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
@@ -44,7 +52,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer;
+export default Footer

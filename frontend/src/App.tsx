@@ -8,13 +8,13 @@ import Footer from './components/Footer'
 function App() {
   return (
     <>
-      <div className='bg-[#030B1E] h-screen'>
+      <div className="bg-[#030B1E] h-screen bg-hero-semi-circle">
         <Navbar />
         <Heropage />
-        <Metrics />
       </div>
+      <Metrics />
 
-      <div className='bg-[#030B1E]'>
+      <div className="bg-[#030B1E]">
         <Content />
       </div>
       <Footer />
