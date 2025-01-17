@@ -5,16 +5,18 @@ pub mod Vault {
         ContractAddress, get_caller_address, get_contract_address, get_block_timestamp, ClassHash
     };
     use core::starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry ,Vec, VecTrait, MutableVecTrait
+        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Vec, VecTrait,
+        MutableVecTrait
     };
     use openzeppelin_access::ownable::OwnableComponent;
     use openzeppelin_token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use openzeppelin_security::{PausableComponent, ReentrancyGuardComponent};
     use openzeppelin_upgrades::upgradeable::UpgradeableComponent;
     use win_saved::interfaces::{
-        ivault::{IVault, WinnerStruct}, ierc20::{IERC20Dispatcher, IERC20DispatcherTrait}
+        ivault::{IVault, WinnerStruct}, ierc20::{IERC20Dispatcher, IERC20DispatcherTrait},
+        iyieldsource::{IYieldSourceDispatcher, IYieldSourceDispatcherTrait}
     };
-    use win_saved::types::{YieldSourceData, UserBalanceStruct};
+    use win_saved::types::{YieldSourceData, UserBalanceStruct, VaultDetails, TokenData};
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -42,6 +44,8 @@ pub mod Vault {
     struct Storage {
         yield_token: ContractAddress,
         yield_source: ContractAddress,
+        draw_duration: u64,
+        last_draw_time: u64,
         winners: Vec<Winner>,
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
@@ -110,7 +114,10 @@ pub mod Vault {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, yield_token: ContractAddress, yield_source: ContractAddress
+        ref self: ContractState,
+        yield_token: ContractAddress,
+        yield_source: ContractAddress,
+        draw_duration: u64
     ) {
         let owner = get_caller_address();
         self.ownable.initializer(owner);
@@ -120,11 +127,35 @@ pub mod Vault {
         let token_symbol = format!("ws{}", erc20_dispatcher.symbol());
         self.yield_token.write(yield_token);
         self.yield_source.write(yield_source);
+        self.draw_duration.write(draw_duration);
         self.erc20.initializer(token_name, token_symbol);
     }
 
     #[abi(embed_v0)]
     impl VaultImpl of IVault<ContractState> {
+        fn get_vault_details(self: @ContractState) -> VaultDetails {
+            let yield_token_address = self.yield_token.read();
+            let yield_erc20_dispatcher = IERC20Dispatcher { contract_address: yield_token_address };
+            let yield_source_dispatcher = IYieldSourceDispatcher {
+                contract_address: self.yield_source.read()
+            };
+            let yield_source_data = yield_source_dispatcher
+                .get_supply_pool_data(yield_token_address);
+            let TVL = yield_source_dispatcher.get_total_value_locked(yield_token_address);
+            let total_yield = yield_source_dispatcher.get_yield_generated(yield_token_address);
+            VaultDetails {
+                yield_token: TokenData {
+                    symbol: erc20_dispatcher.symbol(), address: yield_token_address
+                },
+                vault_token: TokenData {
+                    symbol: self.erc20.symbol(), address: get_contract_address()
+                },
+                APY: yield_source_data.APY,
+                owner: self.ownable.owner(),
+                total_deposit: TVL,
+                total_yield: total_yield
+            }
+        }
         fn deposit(ref self: ContractState, amount: u256) {
             // check paused
             self.pausable.assert_not_paused();
@@ -136,6 +167,10 @@ pub mod Vault {
             let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
             erc20_dispatcher.transfer_from(caller, contract_address, amount);
             // make call to yield source to deposit
+            let yield_source_dispatcher = IYieldSourceDispatcher {
+                contract_address: self.yield_source.read()
+            };
+            yield_source_dispatcher.withdraw(erc20_address, amount.try_into().unwrap());
             // mint token
             self.erc20.mint(caller, amount);
             let current_date_time = get_block_timestamp();
@@ -159,8 +194,12 @@ pub mod Vault {
             let user_balance = self.erc20.balance_of(caller);
             assert!(user_balance >= amount, "Insufficient balance");
             // make call to yield source to withdraw amount
-            //transfer token to user
             let erc20_address = self.yield_token.read();
+            let yield_source_dispatcher = IYieldSourceDispatcher {
+                contract_address: self.yield_source.read()
+            };
+            yield_source_dispatcher.withdraw(erc20_address, amount.try_into().unwrap());
+            //transfer token to user
             let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
             // burn token
             self.erc20.burn(caller, amount);
@@ -176,8 +215,11 @@ pub mod Vault {
         fn draw(ref self: ContractState, random_value: u32) {
             self.ownable.assert_only_owner();
             // check whether last draw time is greater than draw duration
+            self.assert_vault_draw_availabiliity();
 
             // check whether yield is available
+
+            // get_all users that deposited to this vault
             let users = self.get_all_users();
             let sorted_holders = self.sort_users_by_balance(users);
             // get the top half for randomization
@@ -198,7 +240,10 @@ pub mod Vault {
         }
         fn get_total_assets(self: @ContractState) -> u256 {
             // access total assets form yield source
-            10
+            let yield_source_dispatcher = IYieldSourceDispatcher {
+                contract_address: self.yield_source.read()
+            };
+            yield_source_dispatcher.get_total_value_locked()
         }
         fn get_yield_source_data(self: @ContractState) -> YieldSourceData {
             // access yield source connector interface
@@ -253,22 +298,23 @@ pub mod Vault {
             // transfer yield amount to winner via dispatcher
 
             // add winner to winner struct
-            self
-                .winners
-                .append()
-                .write(
-                    Winner {
-                        address: user,
-                        amount: yield_amount,
-                        date: get_block_timestamp(),
-                        claimed: true
-                    }
-                );
+            let index = self.winners.len();
+            let position = self.winners.at(index);
+            position.address.write(user);
+            position.amount.write(yield_amount);
+            position.date.write(get_block_timestamp());
+            position.claimed.write(true);
+
             let erc20_address = self.yield_token.read();
             let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
             erc20_dispatcher.transfer(user, yield_amount);
 
             yield_amount
+        }
+        fn assert_vault_draw_availabiliity(self: @ContractState) {
+            let current_time = get_block_timestamp();
+            let draw_diff = current_time - self.last_draw_time.read();
+            assert!(draw_diff > self.draw_duration.read(), "Cannot make prize draw");
         }
     }
 }
