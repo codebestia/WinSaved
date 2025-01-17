@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 import { Link } from 'react-router-dom'
 
+=======
+>>>>>>> dev
 const Navbar = () => {
   return (
     <div className="flex justify-between items-center py-10 px-28">
@@ -14,11 +17,17 @@ const Navbar = () => {
       </div>
 
       <div>
+<<<<<<< HEAD
         <Link to="/DApp">
           <button className="bg-[#2594E4] py-2 px-3 rounded-lg">
             Launch DApp
           </button>
         </Link>
+=======
+        <button className="bg-[#2594E4] py-2 px-3 rounded-lg">
+          Launch DApp
+        </button>
+>>>>>>> dev
       </div>
     </div>
   )
