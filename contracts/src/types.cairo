@@ -12,13 +12,13 @@ pub struct UserBalanceStruct {
     pub amount: u256,
 }
 
-#[derive(Copy, Drop, Serde)]
+#[derive(Drop, Serde)]
 pub struct TokenData {
     pub symbol: ByteArray,
     pub address: ContractAddress
 }
 
-#[derive(Copy, Drop, Serde)]
+#[derive(Drop, Serde)]
 pub struct VaultDetails {
     pub yield_token: TokenData,
     pub vault_token: TokenData,

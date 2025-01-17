@@ -5,8 +5,7 @@ pub mod Vault {
         ContractAddress, get_caller_address, get_contract_address, get_block_timestamp, ClassHash
     };
     use core::starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, Vec, VecTrait,
-        MutableVecTrait
+        StoragePointerReadAccess, StoragePointerWriteAccess, Vec, VecTrait, MutableVecTrait
     };
     use openzeppelin_access::ownable::OwnableComponent;
     use openzeppelin_token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
