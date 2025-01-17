@@ -1,10 +1,10 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Navbar from './components/Nav';
-import Heropage from './components/Hero';
-import Metrics from './components/Metrics';
-import Content from './components/Content';
-import Footer from './components/Footer';
-import Dapp from './DApp/page';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import Navbar from './components/Nav'
+import Heropage from './components/Hero'
+import Metrics from './components/Metrics'
+import Content from './components/Content'
+import Footer from './components/Footer'
+import Dapp from './DApp/page'
 
 function App() {
   return (
@@ -28,7 +28,7 @@ function App() {
         <Route path="/DApp" element={<Dapp />} />
       </Routes>
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App
