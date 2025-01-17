@@ -5,7 +5,7 @@ pub mod Vault {
         ContractAddress, get_caller_address, get_contract_address, get_block_timestamp, ClassHash
     };
     use core::starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Vec, VecTrait,
+        StoragePointerReadAccess, StoragePointerWriteAccess, Vec, VecTrait,
         MutableVecTrait
     };
     use openzeppelin_access::ownable::OwnableComponent;
@@ -30,6 +30,8 @@ pub mod Vault {
     impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
     impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
 
+    #[abi(embed_v0)]
+    impl OwnableImpl = OwnableComponent::OwnableImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
     #[abi(embed_v0)]
@@ -145,7 +147,7 @@ pub mod Vault {
             let total_yield = yield_source_dispatcher.get_yield_generated(yield_token_address);
             VaultDetails {
                 yield_token: TokenData {
-                    symbol: erc20_dispatcher.symbol(), address: yield_token_address
+                    symbol: yield_erc20_dispatcher.symbol(), address: yield_token_address
                 },
                 vault_token: TokenData {
                     symbol: self.erc20.symbol(), address: get_contract_address()
@@ -189,7 +191,6 @@ pub mod Vault {
             self.pausable.assert_not_paused();
             self.reentrancyguard.start();
             let caller = get_caller_address();
-            let contract_address = get_contract_address();
             // get user vault token balance and assert if balance is equal to amount
             let user_balance = self.erc20.balance_of(caller);
             assert!(user_balance >= amount, "Insufficient balance");
@@ -243,7 +244,7 @@ pub mod Vault {
             let yield_source_dispatcher = IYieldSourceDispatcher {
                 contract_address: self.yield_source.read()
             };
-            yield_source_dispatcher.get_total_value_locked()
+            yield_source_dispatcher.get_total_value_locked(get_contract_address())
         }
         fn get_yield_source_data(self: @ContractState) -> YieldSourceData {
             // access yield source connector interface
