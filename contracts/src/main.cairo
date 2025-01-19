@@ -123,8 +123,9 @@ pub mod WinSaved {
             self.vaults.append().write(contract_address);
             self.emit(VaultCreatedEvent { address: contract_address });
         }
-        fn make_vault_draw(ref self: ContractState, vault: ContractAddress) {// generate random number with prima lib
-
+        fn make_vault_draw(
+            ref self: ContractState, vault: ContractAddress
+        ) { // generate random number with prima lib
         }
         fn add_yield_token(ref self: ContractState, token: ContractAddress) {
             self.ownable.assert_only_owner();
