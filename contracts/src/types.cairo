@@ -27,3 +27,9 @@ pub struct VaultDetails {
     pub total_deposit: u256,
     pub total_yield: u256
 }
+
+#[derive(Drop, Serde)]
+pub struct YieldSourceDetails {
+    pub name: ByteArray,
+    pub contract_address: ContractAddress
+}
